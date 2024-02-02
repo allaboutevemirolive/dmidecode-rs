@@ -45,6 +45,7 @@ pub fn print_dmidecode_version() {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    // TODO: Use Clap instead
     let opt: Opt = Opt::from_args();
 
     // Select an input source, file or device.
@@ -90,16 +91,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             println!("{}", info);
 
-            let data = raw_smbios_from_device()?;
+            let smbios_data = raw_smbios_from_device()?;
 
             println!(
                 "# Writing {} bytes to {}.",
-                data.len(),
+                smbios_data.len(),
                 &output.to_str().unwrap()
             );
 
             // TODO: create stdout output.  dump_raw() and raw_smbios_from_device() do not output.
-            dump_raw(data, output.as_path())?;
+            // TODO: dump_raw() and raw_smbios_from_device() already emit most of the data we wanted.
+            // There's still some output we need to investigate.
+            dump_raw(smbios_data, output.as_path())?;
         }
         // opt.bios_types, -t, --type TYPE        Only display the entries of given type
         (None, None, Some(bios_types), None, None, false, false, false, false) => {
