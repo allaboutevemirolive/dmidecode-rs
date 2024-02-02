@@ -440,170 +440,197 @@ impl Keyword {
                 .map(|baseboard_info: SMBiosBaseboardInformation<'_>| {
                     baseboard_info.manufacturer().to_utf8_lossy()
                 })
-                .try_fold(String::new(), |mut acc, item| item.map(|val| {
+                .try_fold(String::new(), |mut acc, item| {
+                    item.map(|val| {
                         if !acc.is_empty() {
                             acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
-                    }))
+                    })
+                })
                 .ok_or(BiosParseError::BaseboardManufacturer),
             Keyword::BaseboardProductName => data
                 .map(|baseboard_info: SMBiosBaseboardInformation<'_>| {
                     baseboard_info.product().to_utf8_lossy()
                 })
-                .try_fold(String::new(), |mut acc, item| item.map(|val| {
+                .try_fold(String::new(), |mut acc, item| {
+                    item.map(|val| {
                         if !acc.is_empty() {
                             acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
-                    }))
+                    })
+                })
                 .ok_or(BiosParseError::BaseboardProductName),
             Keyword::BaseboardVersion => data
                 .map(|baseboard_info: SMBiosBaseboardInformation<'_>| {
                     baseboard_info.version().to_utf8_lossy()
                 })
-                .try_fold(String::new(), |mut acc, item| item.map(|val| {
+                .try_fold(String::new(), |mut acc, item| {
+                    item.map(|val| {
                         if !acc.is_empty() {
                             acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
-                    }))
+                    })
+                })
                 .ok_or(BiosParseError::BaseboardVersion),
             Keyword::BaseboardSerialNumber => data
                 .map(|baseboard_info: SMBiosBaseboardInformation<'_>| {
                     baseboard_info.serial_number().to_utf8_lossy()
                 })
-                .try_fold(String::new(), |mut acc, item| item.map(|val| {
+                .try_fold(String::new(), |mut acc, item| {
+                    item.map(|val| {
                         if !acc.is_empty() {
                             acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
-                    }))
+                    })
+                })
                 .ok_or(BiosParseError::BaseboardSerialNumber),
             Keyword::BaseboardAssetTag => data
                 .map(|baseboard_info: SMBiosBaseboardInformation<'_>| {
                     baseboard_info.asset_tag().to_utf8_lossy()
                 })
-                .try_fold(String::new(), |mut acc, item| item.map(|val| {
+                .try_fold(String::new(), |mut acc, item| {
+                    item.map(|val| {
                         if !acc.is_empty() {
                             acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
-                    }))
+                    })
+                })
                 .ok_or(BiosParseError::BaseboardAssetTag),
             Keyword::ChassisManufacturer => data
                 .map(|chassis_info: SMBiosSystemChassisInformation<'_>| {
                     chassis_info.manufacturer().to_utf8_lossy()
                 })
-                .try_fold(String::new(), |mut acc, item| item.map(|val| {
+                .try_fold(String::new(), |mut acc, item| {
+                    item.map(|val| {
                         if !acc.is_empty() {
                             acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
-                    }))
+                    })
+                })
                 .ok_or(BiosParseError::ChassisManufacturer),
             Keyword::ChassisType => data
                 .map(|chassis_info: SMBiosSystemChassisInformation<'_>| chassis_info.chassis_type())
-                .try_fold(String::new(), |mut acc, item| item.map(|val| {
+                .try_fold(String::new(), |mut acc, item| {
+                    item.map(|val| {
                         if !acc.is_empty() {
                             acc.push('\n');
                         };
                         acc.push_str(&format!("{}", &val).to_string());
                         acc
-                    }))
+                    })
+                })
                 .ok_or(BiosParseError::ChassisType),
             Keyword::ChassisVersion => data
                 .map(|chassis_info: SMBiosSystemChassisInformation<'_>| {
                     chassis_info.version().to_utf8_lossy()
                 })
-                .try_fold(String::new(), |mut acc, item| item.map(|val| {
+                .try_fold(String::new(), |mut acc, item| {
+                    item.map(|val| {
                         if !acc.is_empty() {
                             acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
-                    }))
+                    })
+                })
                 .ok_or(BiosParseError::ChassisVersion),
             Keyword::ChassisSerialNumber => data
                 .map(|chassis_info: SMBiosSystemChassisInformation<'_>| {
                     chassis_info.serial_number().to_utf8_lossy()
                 })
-                .try_fold(String::new(), |mut acc, item| item.map(|val| {
+                .try_fold(String::new(), |mut acc, item| {
+                    item.map(|val| {
                         if !acc.is_empty() {
                             acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
-                    }))
+                    })
+                })
                 .ok_or(BiosParseError::ChassisSerialNumber),
             Keyword::ChassisAssetTag => data
                 .map(|chassis_info: SMBiosSystemChassisInformation<'_>| {
                     chassis_info.asset_tag_number().to_utf8_lossy()
                 })
-                .try_fold(String::new(), |mut acc, item| item.map(|val| {
+                .try_fold(String::new(), |mut acc, item| {
+                    item.map(|val| {
                         if !acc.is_empty() {
                             acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
-                    }))
+                    })
+                })
                 .ok_or(BiosParseError::ChassisAssetTag),
             Keyword::ProcessorFamily => data
                 .map(|processor_info: SMBiosProcessorInformation<'_>| {
                     if let Some(family) = processor_info.processor_family() {
                         match family.value {
-                            ProcessorFamily::SeeProcessorFamily2 => {
-                                processor_info.processor_family_2().map(|family2| format!("{}", family2))
-                            }
+                            ProcessorFamily::SeeProcessorFamily2 => processor_info
+                                .processor_family_2()
+                                .map(|family2| format!("{}", family2)),
                             _ => Some(format!("{}", family)),
                         }
                     } else {
                         None
                     }
                 })
-                .try_fold(String::new(), |mut acc, item| item.map(|val| {
+                .try_fold(String::new(), |mut acc, item| {
+                    item.map(|val| {
                         if !acc.is_empty() {
                             acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
-                    }))
+                    })
+                })
                 .ok_or(BiosParseError::ProcessorFamily),
             Keyword::ProcessorManufacturer => data
                 .map(|processor_info: SMBiosProcessorInformation<'_>| {
                     processor_info.processor_manufacturer().to_utf8_lossy()
                 })
-                .try_fold(String::new(), |mut acc, item| item.map(|val| {
+                .try_fold(String::new(), |mut acc, item| {
+                    item.map(|val| {
                         if !acc.is_empty() {
                             acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
-                    }))
+                    })
+                })
                 .ok_or(BiosParseError::ProcessorManufacturer),
             Keyword::ProcessorVersion => data
                 .map(|processor_info: SMBiosProcessorInformation<'_>| {
                     processor_info.processor_version().to_utf8_lossy()
                 })
-                .try_fold(String::new(), |mut acc, item| item.map(|val| {
+                .try_fold(String::new(), |mut acc, item| {
+                    item.map(|val| {
                         if !acc.is_empty() {
                             acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
-                    }))
+                    })
+                })
                 .ok_or(BiosParseError::ProcessorVersion),
             Keyword::ProcessorFrequency => data
                 .map(|processor_info: SMBiosProcessorInformation<'_>| {
                     processor_info.current_speed()
                 })
-                .try_fold(String::new(), |mut acc, item| item.map(|val| {
+                .try_fold(String::new(), |mut acc, item| {
+                    item.map(|val| {
                         if !acc.is_empty() {
                             acc.push('\n');
                         };
@@ -613,7 +640,8 @@ impl Keyword {
                         };
                         acc.push_str(output.as_str());
                         acc
-                    }))
+                    })
+                })
                 .ok_or(BiosParseError::ProcessorFrequency),
         }
     }

@@ -30,7 +30,6 @@ pub enum BiosParseError {
     ProcessorFrequency,
 }
 
-
 impl Error for BiosParseError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         None

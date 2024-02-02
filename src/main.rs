@@ -1,8 +1,5 @@
 //! # dmidecode command-line tool executable
 
-#![warn(missing_docs)]
-#![deny(rust_2018_idioms)]
-
 #[cfg_attr(any(target_os = "linux", target_os = "freebsd"), path = "unix.rs")]
 #[cfg_attr(windows, path = "windows.rs")]
 #[cfg_attr(target_os = "macos", path = "macos.rs")]
@@ -65,7 +62,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         (data, output)
     } else {
-        // println!("Before match pattern----------");
         platform::table_load(&opt)?
     };
 
@@ -104,17 +100,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             // TODO: create stdout output.  dump_raw() and raw_smbios_from_device() do not output.
             dump_raw(data, output.as_path())?;
-
-            // use std::fs::File;
-            // use std::io::{BufWriter, Write};
-            // use std::path::Path;
-            // pub fn dump_raw_(data: Vec<u8>, out_path: &Path) -> Result<(), std::io::Error> {
-            //     let f = File::create(&out_path)?;
-            //     let mut f = BufWriter::new(f);
-            //     // println!("capacity: {:?}", f.capacity());
-            //     f.write_all(&data)?;
-            //     Ok(())
-            // }
         }
         // opt.bios_types, -t, --type TYPE        Only display the entries of given type
         (None, None, Some(bios_types), None, None, false, false, false, false) => {
