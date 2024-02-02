@@ -505,254 +505,250 @@ pub fn dmi_processor_id(data: &SMBiosProcessorInformation<'_>) {
             _ => None,
         };
 
-        match option_family {
-            Some(family) => {
-                let mut sig = 0;
+        if let Some(family) = option_family {
+            let mut sig = 0;
 
-                if family.0 == ProcessorFamily::Intel386Processor {
-                    let dx = u16::from_le_bytes(p[0..=1].try_into().expect("u16 is 2 bytes"));
+            if family.0 == ProcessorFamily::Intel386Processor {
+                let dx = u16::from_le_bytes(p[0..=1].try_into().expect("u16 is 2 bytes"));
+                println!(
+                    "\tSignature: Type {}, Family {}, Major Stepping {}, Minor Stepping {}",
+                    dx >> 12,
+                    (dx >> 8) & 0xF,
+                    (dx >> 4) & 0xF,
+                    dx & 0xF
+                );
+                return;
+            } else if family.0 == ProcessorFamily::Intel486Processor {
+                let dx = u16::from_le_bytes(p[0..=1].try_into().expect("u16 is 2 bytes"));
+
+                // Not all 80486 CPU support the CPUID instruction, we have to find
+                // whether the one we have here does or not. Note that this trick
+                // works only because we know that 80486 must be little-endian.
+                if (dx & 0x0F00) == 0x0400
+                    && ((dx & 0x00F0) == 0x0040 || (dx & 0x00F0) >= 0x0070)
+                    && ((dx & 0x000F) >= 0x0003)
+                {
+                    sig = 1;
+                } else {
                     println!(
                         "\tSignature: Type {}, Family {}, Major Stepping {}, Minor Stepping {}",
-                        dx >> 12,
+                        (dx >> 12) & 0x3,
                         (dx >> 8) & 0xF,
                         (dx >> 4) & 0xF,
                         dx & 0xF
                     );
                     return;
-                } else if family.0 == ProcessorFamily::Intel486Processor {
-                    let dx = u16::from_le_bytes(p[0..=1].try_into().expect("u16 is 2 bytes"));
-
-                    // Not all 80486 CPU support the CPUID instruction, we have to find
-                    // whether the one we have here does or not. Note that this trick
-                    // works only because we know that 80486 must be little-endian.
-                    if (dx & 0x0F00) == 0x0400
-                        && ((dx & 0x00F0) == 0x0040 || (dx & 0x00F0) >= 0x0070)
-                        && ((dx & 0x000F) >= 0x0003)
-                    {
-                        sig = 1;
-                    } else {
-                        println!(
-                            "\tSignature: Type {}, Family {}, Major Stepping {}, Minor Stepping {}",
-                            (dx >> 12) & 0x3,
-                            (dx >> 8) & 0xF,
-                            (dx >> 4) & 0xF,
-                            dx & 0xF
-                        );
-                        return;
-                    }
                 }
-                // ARM
-                else if family.0 == ProcessorFamily::ARMv7
-                    || family.0 == ProcessorFamily::ARMv8
-                    || (family.1 >= 0x118 && family.1 <= 0x119)
-                {
-                    let midr = u32::from_le_bytes(p[4..=7].try_into().expect("u32 is 4 bytes"));
+            }
+            // ARM
+            else if family.0 == ProcessorFamily::ARMv7
+                || family.0 == ProcessorFamily::ARMv8
+                || (family.1 >= 0x118 && family.1 <= 0x119)
+            {
+                let midr = u32::from_le_bytes(p[4..=7].try_into().expect("u32 is 4 bytes"));
 
-                    // The format of this field was not defined for ARM processors
-                    // before version 3.1.0 of the SMBIOS specification, so we
-                    // silently skip it if it reads all zeroes.
-                    if midr == 0 {
-                        return;
-                    }
-
-                    println!("\tSignature: Implementor {:#04x}, Variant {:#x}, Architecture {}, Part {:#05x}, Revision {}", midr >> 24, (midr >> 20) & 0xF, (midr >> 16) & 0xF, (midr >> 4) & 0xFFF, midr & 0xF);
+                // The format of this field was not defined for ARM processors
+                // before version 3.1.0 of the SMBIOS specification, so we
+                // silently skip it if it reads all zeroes.
+                if midr == 0 {
                     return;
                 }
+
+                println!("\tSignature: Implementor {:#04x}, Variant {:#x}, Architecture {}, Part {:#05x}, Revision {}", midr >> 24, (midr >> 20) & 0xF, (midr >> 16) & 0xF, (midr >> 4) & 0xFFF, midr & 0xF);
+                return;
+            }
+            // Intel
+            else if (family.1 >= 0x0B && family.1 <= 0x15)
+                || (family.1 >= 0x28 && family.1 <= 0x2F)
+                || (family.1 >= 0xA1 && family.1 <= 0xB3)
+                || family.0 == ProcessorFamily::IntelXeonProcessorMP
+                || (family.1 >= 0xB9 && family.1 <= 0xC7)
+                || (family.1 >= 0xCD && family.1 <= 0xCF)
+                || (family.1 >= 0xD2 && family.1 <= 0xDB)
+                || (family.1 >= 0xDD && family.1 <= 0xE0)
+            {
+                sig = 1;
+            }
+            // AMD
+            else if (family.1 >= 0x18 && family.1 <= 0x1D)
+                || family.0 == ProcessorFamily::K62Plus
+                || (family.1 >= 0x38 && family.1 <= 0x3F)
+                || (family.1 >= 0x46 && family.1 <= 0x4F)
+                || (family.1 >= 0x66 && family.1 <= 0x6B)
+                || (family.1 >= 0x83 && family.1 <= 0x8F)
+                || (family.1 >= 0xB6 && family.1 <= 0xB7)
+                || (family.1 >= 0xE4 && family.1 <= 0xEF)
+            {
+                sig = 2;
+            }
+            // Some X86-class CPU have family "Other" or "Unknown". In this case,
+            // we use the version string to determine if they are known to
+            // support the CPUID instruction.
+            else if family.0 == ProcessorFamily::Other || family.0 == ProcessorFamily::Unknown {
+                if let Some(version) = data.processor_version().to_utf8_lossy() {
+                    match version.as_str() {
+                        "Pentium III MMX" => {
+                            sig = 1;
+                        }
+                        "Intel(R) Core(TM)2" => {
+                            sig = 1;
+                        }
+                        "Intel(R) Pentium(R)" => {
+                            sig = 1;
+                        }
+                        "Genuine Intel(R) CPU U1400" => {
+                            sig = 1;
+                        }
+                        "AMD Athlon(TM)" => {
+                            sig = 2;
+                        }
+                        "AMD Opteron(tm)" => {
+                            sig = 2;
+                        }
+                        "Dual-Core AMD Opteron(tm)" => {
+                            sig = 2;
+                        }
+                        _ => return,
+                    }
+                }
+            } else {
+                // neither X86 nor ARM
+                return;
+            }
+
+            // Extra flags are now returned in the ECX register when one calls
+            // the CPUID instruction. Their meaning is explained in table 3-5, but
+            // DMI doesn't support this yet.
+            let eax = u32::from_le_bytes(p[0..=3].try_into().expect("u32 is 4 bytes"));
+            let edx = u32::from_le_bytes(p[4..=7].try_into().expect("u32 is 4 bytes"));
+
+            match sig {
                 // Intel
-                else if (family.1 >= 0x0B && family.1 <= 0x15)
-                    || (family.1 >= 0x28 && family.1 <= 0x2F)
-                    || (family.1 >= 0xA1 && family.1 <= 0xB3)
-                    || family.0 == ProcessorFamily::IntelXeonProcessorMP
-                    || (family.1 >= 0xB9 && family.1 <= 0xC7)
-                    || (family.1 >= 0xCD && family.1 <= 0xCF)
-                    || (family.1 >= 0xD2 && family.1 <= 0xDB)
-                    || (family.1 >= 0xDD && family.1 <= 0xE0)
-                {
-                    sig = 1;
+                1 => {
+                    println!(
+                        "\tSignature: Type {}, Family {}, Model {}, Stepping {}",
+                        (eax >> 12) & 0x3,
+                        ((eax >> 20) & 0xFF) + ((eax >> 8) & 0x0F),
+                        ((eax >> 12) & 0xF0) + ((eax >> 4) & 0x0F),
+                        eax & 0xF
+                    );
                 }
-                // AMD
-                else if (family.1 >= 0x18 && family.1 <= 0x1D)
-                    || family.0 == ProcessorFamily::K62Plus
-                    || (family.1 >= 0x38 && family.1 <= 0x3F)
-                    || (family.1 >= 0x46 && family.1 <= 0x4F)
-                    || (family.1 >= 0x66 && family.1 <= 0x6B)
-                    || (family.1 >= 0x83 && family.1 <= 0x8F)
-                    || (family.1 >= 0xB6 && family.1 <= 0xB7)
-                    || (family.1 >= 0xE4 && family.1 <= 0xEF)
-                {
-                    sig = 2;
+                // AMD, publication #25481 revision 2.28
+                2 => {
+                    println!(
+                        "\tSignature: Family {}, Model {}, Stepping {}",
+                        ((eax >> 8) & 0xF)
+                            + match ((eax >> 8) & 0xF) == 0xF {
+                                true => (eax >> 20) & 0xFF,
+                                false => 0,
+                            },
+                        ((eax >> 4) & 0xF)
+                            | match ((eax >> 8) & 0xF) == 0xF {
+                                true => (eax >> 12) & 0xF0,
+                                false => 0,
+                            },
+                        eax & 0xF
+                    );
                 }
-                // Some X86-class CPU have family "Other" or "Unknown". In this case,
-                // we use the version string to determine if they are known to
-                // support the CPUID instruction.
-                else if family.0 == ProcessorFamily::Other || family.0 == ProcessorFamily::Unknown
-                {
-                    if let Some(version) = data.processor_version().to_utf8_lossy() {
-                        match version.as_str() {
-                            "Pentium III MMX" => {
-                                sig = 1;
-                            }
-                            "Intel(R) Core(TM)2" => {
-                                sig = 1;
-                            }
-                            "Intel(R) Pentium(R)" => {
-                                sig = 1;
-                            }
-                            "Genuine Intel(R) CPU U1400" => {
-                                sig = 1;
-                            }
-                            "AMD Athlon(TM)" => {
-                                sig = 2;
-                            }
-                            "AMD Opteron(tm)" => {
-                                sig = 2;
-                            }
-                            "Dual-Core AMD Opteron(tm)" => {
-                                sig = 2;
-                            }
-                            _ => return,
-                        }
+                _ => (),
+            }
+
+            // Flags
+            match edx & 0xBFEFFBFF == 0 {
+                true => println!("\tFlags: None"),
+                false => {
+                    println!("\tFlags:");
+                    if (edx & (1 << 0)) != 0 {
+                        println!("\t\tFPU (Floating-point unit on-chip)");
                     }
-                } else {
-                    // neither X86 nor ARM
-                    return;
-                }
-
-                // Extra flags are now returned in the ECX register when one calls
-                // the CPUID instruction. Their meaning is explained in table 3-5, but
-                // DMI doesn't support this yet.
-                let eax = u32::from_le_bytes(p[0..=3].try_into().expect("u32 is 4 bytes"));
-                let edx = u32::from_le_bytes(p[4..=7].try_into().expect("u32 is 4 bytes"));
-
-                match sig {
-                    // Intel
-                    1 => {
-                        println!(
-                            "\tSignature: Type {}, Family {}, Model {}, Stepping {}",
-                            (eax >> 12) & 0x3,
-                            ((eax >> 20) & 0xFF) + ((eax >> 8) & 0x0F),
-                            ((eax >> 12) & 0xF0) + ((eax >> 4) & 0x0F),
-                            eax & 0xF
-                        );
+                    if (edx & (1 << 1)) != 0 {
+                        println!("\t\tVME (Virtual mode extension)");
                     }
-                    // AMD, publication #25481 revision 2.28
-                    2 => {
-                        println!(
-                            "\tSignature: Family {}, Model {}, Stepping {}",
-                            ((eax >> 8) & 0xF)
-                                + match ((eax >> 8) & 0xF) == 0xF {
-                                    true => (eax >> 20) & 0xFF,
-                                    false => 0,
-                                },
-                            ((eax >> 4) & 0xF)
-                                | match ((eax >> 8) & 0xF) == 0xF {
-                                    true => (eax >> 12) & 0xF0,
-                                    false => 0,
-                                },
-                            eax & 0xF
-                        );
+                    if (edx & (1 << 9)) != 0 {
+                        println!("\t\tDE (Debugging extension)");
                     }
-                    _ => (),
-                }
+                    if (edx & (1 << 3)) != 0 {
+                        println!("\t\tPSE (Page size extension)");
+                    }
+                    if (edx & (1 << 4)) != 0 {
+                        println!("\t\tTSC (Time stamp counter)");
+                    }
+                    if (edx & (1 << 5)) != 0 {
+                        println!("\t\tMSR (Model specific registers)");
+                    }
+                    if (edx & (1 << 6)) != 0 {
+                        println!("\t\tPAE (Physical address extension)");
+                    }
+                    if (edx & (1 << 7)) != 0 {
+                        println!("\t\tMCE (Machine check exception)");
+                    }
+                    if (edx & (1 << 8)) != 0 {
+                        println!("\t\tCX8 (CMPXCHG8 instruction supported)");
+                    }
+                    if (edx & (1 << 9)) != 0 {
+                        println!("\t\tAPIC (On-chip APIC hardware supported)");
+                    }
 
-                // Flags
-                match edx & 0xBFEFFBFF == 0 {
-                    true => println!("\tFlags: None"),
-                    false => {
-                        println!("\tFlags:");
-                        if (edx & (1 << 0)) != 0 {
-                            println!("\t\tFPU (Floating-point unit on-chip)");
-                        }
-                        if (edx & (1 << 1)) != 0 {
-                            println!("\t\tVME (Virtual mode extension)");
-                        }
-                        if (edx & (1 << 9)) != 0 {
-                            println!("\t\tDE (Debugging extension)");
-                        }
-                        if (edx & (1 << 3)) != 0 {
-                            println!("\t\tPSE (Page size extension)");
-                        }
-                        if (edx & (1 << 4)) != 0 {
-                            println!("\t\tTSC (Time stamp counter)");
-                        }
-                        if (edx & (1 << 5)) != 0 {
-                            println!("\t\tMSR (Model specific registers)");
-                        }
-                        if (edx & (1 << 6)) != 0 {
-                            println!("\t\tPAE (Physical address extension)");
-                        }
-                        if (edx & (1 << 7)) != 0 {
-                            println!("\t\tMCE (Machine check exception)");
-                        }
-                        if (edx & (1 << 8)) != 0 {
-                            println!("\t\tCX8 (CMPXCHG8 instruction supported)");
-                        }
-                        if (edx & (1 << 9)) != 0 {
-                            println!("\t\tAPIC (On-chip APIC hardware supported)");
-                        }
+                    if (edx & (1 << 11)) != 0 {
+                        println!("\t\tSEP (Fast system call)");
+                    }
+                    if (edx & (1 << 12)) != 0 {
+                        println!("\t\tMTRR (Memory type range registers)");
+                    }
+                    if (edx & (1 << 13)) != 0 {
+                        println!("\t\tPGE (Page global enable)");
+                    }
+                    if (edx & (1 << 14)) != 0 {
+                        println!("\t\tMCA (Machine check architecture)");
+                    }
+                    if (edx & (1 << 15)) != 0 {
+                        println!("\t\tCMOV (Conditional move instruction supported)");
+                    }
+                    if (edx & (1 << 16)) != 0 {
+                        println!("\t\tPAT (Page attribute table)");
+                    }
+                    if (edx & (1 << 17)) != 0 {
+                        println!("\t\tPSE-36 (36-bit page size extension)");
+                    }
+                    if (edx & (1 << 18)) != 0 {
+                        println!("\t\tPSN (Processor serial number present and enabled)");
+                    }
+                    if (edx & (1 << 19)) != 0 {
+                        println!("\t\tCLFSH (CLFLUSH instruction supported)");
+                    }
 
-                        if (edx & (1 << 11)) != 0 {
-                            println!("\t\tSEP (Fast system call)");
-                        }
-                        if (edx & (1 << 12)) != 0 {
-                            println!("\t\tMTRR (Memory type range registers)");
-                        }
-                        if (edx & (1 << 13)) != 0 {
-                            println!("\t\tPGE (Page global enable)");
-                        }
-                        if (edx & (1 << 14)) != 0 {
-                            println!("\t\tMCA (Machine check architecture)");
-                        }
-                        if (edx & (1 << 15)) != 0 {
-                            println!("\t\tCMOV (Conditional move instruction supported)");
-                        }
-                        if (edx & (1 << 16)) != 0 {
-                            println!("\t\tPAT (Page attribute table)");
-                        }
-                        if (edx & (1 << 17)) != 0 {
-                            println!("\t\tPSE-36 (36-bit page size extension)");
-                        }
-                        if (edx & (1 << 18)) != 0 {
-                            println!("\t\tPSN (Processor serial number present and enabled)");
-                        }
-                        if (edx & (1 << 19)) != 0 {
-                            println!("\t\tCLFSH (CLFLUSH instruction supported)");
-                        }
-
-                        if (edx & (1 << 21)) != 0 {
-                            println!("\t\tDS (Debug store)");
-                        }
-                        if (edx & (1 << 22)) != 0 {
-                            println!("\t\tACPI (ACPI supported)");
-                        }
-                        if (edx & (1 << 23)) != 0 {
-                            println!("\t\tMMX (MMX technology supported)");
-                        }
-                        if (edx & (1 << 24)) != 0 {
-                            println!("\t\tFXSR (FXSAVE and FXSTOR instructions supported)");
-                        }
-                        if (edx & (1 << 25)) != 0 {
-                            println!("\t\tSSE (Streaming SIMD extensions)");
-                        }
-                        if (edx & (1 << 26)) != 0 {
-                            println!("\t\tSSE2 (Streaming SIMD extensions 2)");
-                        }
-                        if (edx & (1 << 27)) != 0 {
-                            println!("\t\tSS (Self-snoop)");
-                        }
-                        if (edx & (1 << 28)) != 0 {
-                            println!("\t\tHTT (Multi-threading)");
-                        }
-                        if (edx & (1 << 29)) != 0 {
-                            println!("\t\tTM (Thermal monitor supported)");
-                        }
-                        if (edx & (1 << 31)) != 0 {
-                            println!("\t\tPBE (Pending break enabled)");
-                        }
+                    if (edx & (1 << 21)) != 0 {
+                        println!("\t\tDS (Debug store)");
+                    }
+                    if (edx & (1 << 22)) != 0 {
+                        println!("\t\tACPI (ACPI supported)");
+                    }
+                    if (edx & (1 << 23)) != 0 {
+                        println!("\t\tMMX (MMX technology supported)");
+                    }
+                    if (edx & (1 << 24)) != 0 {
+                        println!("\t\tFXSR (FXSAVE and FXSTOR instructions supported)");
+                    }
+                    if (edx & (1 << 25)) != 0 {
+                        println!("\t\tSSE (Streaming SIMD extensions)");
+                    }
+                    if (edx & (1 << 26)) != 0 {
+                        println!("\t\tSSE2 (Streaming SIMD extensions 2)");
+                    }
+                    if (edx & (1 << 27)) != 0 {
+                        println!("\t\tSS (Self-snoop)");
+                    }
+                    if (edx & (1 << 28)) != 0 {
+                        println!("\t\tHTT (Multi-threading)");
+                    }
+                    if (edx & (1 << 29)) != 0 {
+                        println!("\t\tTM (Thermal monitor supported)");
+                    }
+                    if (edx & (1 << 31)) != 0 {
+                        println!("\t\tPBE (Pending break enabled)");
                     }
                 }
             }
-            None => (),
         }
     }
 }
@@ -1558,23 +1554,15 @@ pub fn dmi_starting_ending_addresses(
 
     // Dmidecode has different padding on addresses for extended addresses vs standard
     if using_ext_address {
-        match (starting_address, ending_address) {
-            (Some(start), Some(end)) => {
-                println!("\tStarting Address: {:#018X}", start);
-                println!("\tEnding Address: {:#018X}", end);
-                dmi_mapped_address_extended_size(start, end);
-            }
-            _ => (),
+        if let (Some(start), Some(end)) = (starting_address, ending_address) {
+            println!("\tStarting Address: {:#018X}", start);
+            println!("\tEnding Address: {:#018X}", end);
+            dmi_mapped_address_extended_size(start, end);
         }
-    } else {
-        match (starting_address, ending_address) {
-            (Some(start), Some(end)) => {
-                println!("\tStarting Address: {:#013X}", start);
-                println!("\tEnding Address: {:#013X}", end);
-                dmi_mapped_address_extended_size(start, end);
-            }
-            _ => (),
-        }
+    } else if let (Some(start), Some(end)) = (starting_address, ending_address) {
+        println!("\tStarting Address: {:#013X}", start);
+        println!("\tEnding Address: {:#013X}", end);
+        dmi_mapped_address_extended_size(start, end);
     }
 }
 pub fn dmi_mapped_address_row_position(position: u8) {
@@ -1615,10 +1603,8 @@ pub fn dmi_hardware_security_status(status: HardwareSecurityStatus) -> String {
 pub fn dmi_bcd_range(value: u8, low: u8, high: u8) -> bool {
     if value > 0x99 || (value & 0x0F) > 0x09 {
         false
-    } else if value < low || value > high {
-        false
     } else {
-        true
+        !(value < low || value > high)
     }
 }
 pub fn dmi_system_boot_status(boot_status_data: &SystemBootStatusData<'_>) -> String {
@@ -2099,12 +2085,11 @@ pub fn dmi_slot_segment_bus_func(
         */
         DeviceFunctionNumber::NotApplicable => (0x1F, 0x7),
     };
-    match bus_number {
-        BusNumber::Number(bn) => println!(
+    if let BusNumber::Number(bn) = bus_number {
+        println!(
             "\tBus Address: {:04x}:{:02x}:{:02x}.{:x}",
             sgn, bn, device, function
-        ),
-        _ => (),
+        )
     }
 }
 pub fn dmi_on_board_devices_type(device_type: &OnBoardDeviceType) -> String {
@@ -2355,9 +2340,7 @@ pub fn dmi_voltage_probe_location(location: &VoltageProbeLocation) -> String {
         VoltageProbeLocation::None => "",
     };
     match print.is_empty() {
-        true => {
-            OUT_OF_SPEC.to_string()
-        }
+        true => OUT_OF_SPEC.to_string(),
         false => print.to_string(),
     }
 }
@@ -2372,9 +2355,7 @@ pub fn dmi_probe_status(status: &VoltageProbeStatus) -> String {
         VoltageProbeStatus::None => "",
     };
     match print.is_empty() {
-        true => {
-            OUT_OF_SPEC.to_string()
-        }
+        true => OUT_OF_SPEC.to_string(),
         false => print.to_string(),
     }
 }
@@ -2424,9 +2405,7 @@ pub fn dmi_cooling_device_type(cooling_device_type: &CoolingDeviceType) -> Strin
         CoolingDeviceType::None => "",
     };
     match print.is_empty() {
-        true => {
-            OUT_OF_SPEC.to_string()
-        }
+        true => OUT_OF_SPEC.to_string(),
         false => print.to_string(),
     }
 }
@@ -2441,9 +2420,7 @@ pub fn dmi_cooling_device_status(status: &CoolingDeviceStatus) -> String {
         CoolingDeviceStatus::None => "",
     };
     match print.is_empty() {
-        true => {
-            OUT_OF_SPEC.to_string()
-        }
+        true => OUT_OF_SPEC.to_string(),
         false => print.to_string(),
     }
 }
@@ -2474,9 +2451,7 @@ pub fn dmi_temperature_probe_location(location: &TemperatureProbeLocation) -> St
         TemperatureProbeLocation::None => "",
     };
     match print.is_empty() {
-        true => {
-            OUT_OF_SPEC.to_string()
-        }
+        true => OUT_OF_SPEC.to_string(),
         false => print.to_string(),
     }
 }
@@ -2491,9 +2466,7 @@ pub fn dmi_temperature_probe_status(status: &TemperatureProbeStatus) -> String {
         TemperatureProbeStatus::None => "",
     };
     match print.is_empty() {
-        true => {
-            OUT_OF_SPEC.to_string()
-        }
+        true => OUT_OF_SPEC.to_string(),
         false => print.to_string(),
     }
 }
@@ -2543,9 +2516,7 @@ pub fn dmi_current_probe_location(location: &CurrentProbeLocation) -> String {
         CurrentProbeLocation::None => "",
     };
     match print.is_empty() {
-        true => {
-            OUT_OF_SPEC.to_string()
-        }
+        true => OUT_OF_SPEC.to_string(),
         false => print.to_string(),
     }
 }
@@ -2799,12 +2770,10 @@ pub fn dmi_tpm_vendor_id(vendor_id: &VendorId<'_>) {
         .array
         .iter()
         .take_while(|&&not_zero| not_zero != 0u8)
-        .map(
-            |&ascii_filter| match !(32..127).contains(&ascii_filter) {
-                true => '.',
-                false => ascii_filter as char,
-            },
-        )
+        .map(|&ascii_filter| match !(32..127).contains(&ascii_filter) {
+            true => '.',
+            false => ascii_filter as char,
+        })
         .collect();
     println!("\tVendor ID: {}", vendor_id_string);
 }

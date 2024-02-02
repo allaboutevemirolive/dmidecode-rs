@@ -3,7 +3,6 @@ use io::{Error, ErrorKind};
 use smbioslib::*;
 use std::io;
 use std::{fmt::Write, path::Path};
-mod dmiopt;
 
 #[cfg(target_os = "linux")]
 pub fn table_load(opt: &Opt) -> Result<(SMBiosData, String), Error> {
@@ -20,7 +19,7 @@ pub fn table_load(opt: &Opt) -> Result<(SMBiosData, String), Error> {
         None => std::path::Path::new(DEV_MEM_FILE),
     };
 
-    table_load_from_dev_mem(&path)
+    table_load_from_dev_mem(path)
 }
 
 #[cfg(target_os = "freebsd")]
