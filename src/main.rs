@@ -47,7 +47,6 @@ pub fn print_dmidecode_version() {
     println!("# {} {}", env!("CARGO_PKG_NAME"), env!("CARGO_PKG_VERSION"));
 }
 
-
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opt: Opt = Opt::from_args();
 
@@ -66,6 +65,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         (data, output)
     } else {
+        // println!("Before match pattern----------");
         platform::table_load(&opt)?
     };
 
@@ -89,8 +89,32 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // opt.output, --dump-bin FILE    Dump the DMI data to a binary file
         (None, Some(output), None, None, None, false, false, false, false) => {
             print_dmidecode_version();
+
+            let (_, info) = platform::table_load(&opt)?;
+
+            println!("{}", info);
+
+            let data = raw_smbios_from_device()?;
+
+            println!(
+                "# Writing {} bytes to {}.",
+                data.len(),
+                &output.to_str().unwrap()
+            );
+
             // TODO: create stdout output.  dump_raw() and raw_smbios_from_device() do not output.
-            dump_raw(raw_smbios_from_device()?, &output.as_path())?
+            dump_raw(data, output.as_path())?;
+
+            // use std::fs::File;
+            // use std::io::{BufWriter, Write};
+            // use std::path::Path;
+            // pub fn dump_raw_(data: Vec<u8>, out_path: &Path) -> Result<(), std::io::Error> {
+            //     let f = File::create(&out_path)?;
+            //     let mut f = BufWriter::new(f);
+            //     // println!("capacity: {:?}", f.capacity());
+            //     f.write_all(&data)?;
+            //     Ok(())
+            // }
         }
         // opt.bios_types, -t, --type TYPE        Only display the entries of given type
         (None, None, Some(bios_types), None, None, false, false, false, false) => {
@@ -104,7 +128,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             println!("{}", smbios_data.1);
             let found_struct = smbios_data
                 .0
-                .find_by_handle(&handle)
+                .find_by_handle(handle)
                 .ok_or(std::io::Error::new(
                     std::io::ErrorKind::InvalidInput,
                     format!("Handle not found: {}", *handle),

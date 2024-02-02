@@ -1,8 +1,8 @@
 use crate::Opt;
 use io::{Error, ErrorKind};
 use smbioslib::*;
+use std::io;
 use std::{fmt::Write, path::Path};
-
 mod dmiopt;
 
 #[cfg(target_os = "linux")]
@@ -38,6 +38,8 @@ pub fn table_load(_opt: &Opt) -> Result<(SMBiosData, String), Error> {
 fn table_load_from_sysfs() -> Result<(SMBiosData, String), Error> {
     let mut output = String::new();
 
+    // Note that, we write to 'string' instead of 'stdout'
+    // Later we will return the string and print-it to any handler.
     writeln!(&mut output, "Getting SMBIOS data from sysfs.").unwrap();
 
     let version: SMBiosVersion;
@@ -105,6 +107,8 @@ fn table_load_from_sysfs() -> Result<(SMBiosData, String), Error> {
         },
     }
 
+    // smbios_data MAYBE containing data instead of empty string
+    // even it did match any pattern arms above.
     let smbios_data = SMBiosData::try_load_from_file(SYS_TABLE_FILE, Some(version))?;
 
     Ok((smbios_data, output))

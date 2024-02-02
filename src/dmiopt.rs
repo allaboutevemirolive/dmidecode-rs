@@ -221,7 +221,7 @@ impl BiosType {
                 true => first = false,
                 false => println!(),
             }
-            dump_undefined_struct(&undefined_struct, data.version, quiet);
+            dump_undefined_struct(undefined_struct, data.version, quiet);
         }
         println!();
     }
@@ -443,7 +443,7 @@ impl Keyword {
                 .try_fold(String::new(), |mut acc, item| match item {
                     Some(val) => Some({
                         if !acc.is_empty() {
-                            acc.push_str("\n");
+                            acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
@@ -458,7 +458,7 @@ impl Keyword {
                 .try_fold(String::new(), |mut acc, item| match item {
                     Some(val) => Some({
                         if !acc.is_empty() {
-                            acc.push_str("\n");
+                            acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
@@ -473,7 +473,7 @@ impl Keyword {
                 .try_fold(String::new(), |mut acc, item| match item {
                     Some(val) => Some({
                         if !acc.is_empty() {
-                            acc.push_str("\n");
+                            acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
@@ -488,7 +488,7 @@ impl Keyword {
                 .try_fold(String::new(), |mut acc, item| match item {
                     Some(val) => Some({
                         if !acc.is_empty() {
-                            acc.push_str("\n");
+                            acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
@@ -503,7 +503,7 @@ impl Keyword {
                 .try_fold(String::new(), |mut acc, item| match item {
                     Some(val) => Some({
                         if !acc.is_empty() {
-                            acc.push_str("\n");
+                            acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
@@ -518,7 +518,7 @@ impl Keyword {
                 .try_fold(String::new(), |mut acc, item| match item {
                     Some(val) => Some({
                         if !acc.is_empty() {
-                            acc.push_str("\n");
+                            acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
@@ -531,7 +531,7 @@ impl Keyword {
                 .try_fold(String::new(), |mut acc, item| match item {
                     Some(val) => Some({
                         if !acc.is_empty() {
-                            acc.push_str("\n");
+                            acc.push('\n');
                         };
                         acc.push_str(&format!("{}", &val).to_string());
                         acc
@@ -546,7 +546,7 @@ impl Keyword {
                 .try_fold(String::new(), |mut acc, item| match item {
                     Some(val) => Some({
                         if !acc.is_empty() {
-                            acc.push_str("\n");
+                            acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
@@ -561,7 +561,7 @@ impl Keyword {
                 .try_fold(String::new(), |mut acc, item| match item {
                     Some(val) => Some({
                         if !acc.is_empty() {
-                            acc.push_str("\n");
+                            acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
@@ -576,7 +576,7 @@ impl Keyword {
                 .try_fold(String::new(), |mut acc, item| match item {
                     Some(val) => Some({
                         if !acc.is_empty() {
-                            acc.push_str("\n");
+                            acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
@@ -604,7 +604,7 @@ impl Keyword {
                 .try_fold(String::new(), |mut acc, item| match item {
                     Some(val) => Some({
                         if !acc.is_empty() {
-                            acc.push_str("\n");
+                            acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
@@ -619,7 +619,7 @@ impl Keyword {
                 .try_fold(String::new(), |mut acc, item| match item {
                     Some(val) => Some({
                         if !acc.is_empty() {
-                            acc.push_str("\n");
+                            acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
@@ -634,7 +634,7 @@ impl Keyword {
                 .try_fold(String::new(), |mut acc, item| match item {
                     Some(val) => Some({
                         if !acc.is_empty() {
-                            acc.push_str("\n");
+                            acc.push('\n');
                         };
                         acc.push_str(&val);
                         acc
@@ -649,7 +649,7 @@ impl Keyword {
                 .try_fold(String::new(), |mut acc, item| match item {
                     Some(val) => Some({
                         if !acc.is_empty() {
-                            acc.push_str("\n");
+                            acc.push('\n');
                         };
                         let output = match &val {
                             ProcessorSpeed::Unknown => String::from("Unknown"),

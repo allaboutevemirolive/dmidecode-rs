@@ -499,7 +499,7 @@ pub fn dump_undefined_struct(
                     ChassisType::None => "",
                 };
 
-                if print == "" {
+                if print.is_empty() {
                     println!("{} ({})", OUT_OF_SPEC, chassis_type.raw);
                 } else {
                     println!("{}", print);
@@ -669,12 +669,12 @@ pub fn dump_undefined_struct(
                     ProcessorVoltage::CurrentVolts(volts) => println!("{:.1} V", volts),
                     ProcessorVoltage::SupportedVolts(supported) => {
                         let voltages = supported.voltages();
-                        match voltages.len() == 0 {
+                        match voltages.is_empty() {
                             true => print!("{}", UNKNOWN),
                             false => {
                                 let mut iter = voltages.iter();
                                 print!("{:.1} V", iter.next().unwrap());
-                                while let Some(voltage) = iter.next() {
+                                for voltage in iter {
                                     // Insert space if not the first value
                                     print!(" {:.1} V", voltage);
                                 }
@@ -719,7 +719,7 @@ pub fn dump_undefined_struct(
                             CpuStatus::Other => OTHER,
                             CpuStatus::None => "",
                         };
-                        match print == "" {
+                        match print.is_empty() {
                             true => println!("{} ({})", OUT_OF_SPEC, status.raw),
                             false => println!("{}", print),
                         }
@@ -1153,7 +1153,7 @@ pub fn dump_undefined_struct(
             }
             // TODO: done to preserve behavior of dmidecode
             for _ in langs_installed..data.number_of_installable_languages().unwrap_or(u8::MAX) {
-                println!("\t\t{}", "<BAD INDEX>");
+                println!("\t\t<BAD INDEX>");
             }
             if let Some(current_language) = dmidecode_string_val(&data.current_language()) {
                 println!("\tCurrently Installed Language: {}", current_language);
@@ -1724,7 +1724,7 @@ pub fn dump_undefined_struct(
                     let mut time = String::new();
                     match dmi_bcd_range(month, 0x0, 0x12) {
                         true => time.push_str(format!("{:04X}", month).as_str()),
-                        false => time.push_str("*"),
+                        false => time.push('*'),
                     }
                     match dmi_bcd_range(day, 0x0, 0x31) {
                         true => time.push_str(format!("-{:04X}", day).as_str()),

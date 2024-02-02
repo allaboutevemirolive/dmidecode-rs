@@ -52,7 +52,7 @@ pub fn dmi_smbios_structure_type(code: u8) -> String {
         _ => "",
     };
 
-    match description == "" {
+    match description.is_empty() {
         true => match code >= 128 {
             true => "OEM-specific".to_string(),
             false => format!("{} ({})", OUT_OF_SPEC, code),
@@ -340,7 +340,7 @@ pub fn dmi_processor_family(processor_family: ProcessorFamily, raw: u16) -> Stri
         }
         ProcessorFamily::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, raw),
         false => print.to_string(),
     }
@@ -430,7 +430,7 @@ pub fn dmi_processor_upgrade(processor_upgrade: ProcessorUpgradeData) -> String 
         ProcessorUpgrade::SocketLGA7529 => "Socket LGA7529",
         ProcessorUpgrade::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, processor_upgrade.raw),
         false => print.to_string(),
     }
@@ -768,7 +768,7 @@ pub fn dmi_memory_controller_ed_method(error_detecting_method: ErrorDetectingMet
         ErrorDetectingMethod::Crc => "CRC",
         ErrorDetectingMethod::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, error_detecting_method.raw),
         false => print.to_string(),
     }
@@ -815,7 +815,7 @@ pub fn dmi_memory_controller_interleave(interleave: InterleaveSupportData) -> St
         InterleaveSupport::SixteenWay => "Sixteen-way Interleave",
         InterleaveSupport::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, interleave.raw),
         false => print.to_string(),
     }
@@ -882,12 +882,12 @@ pub fn dmi_memory_module_types(attr: &str, memory_types: MemoryTypes, flat: bool
             vec.push("SDRAM")
         }
 
-        if vec.len() != 0 {
+        if !vec.is_empty() {
             if flat {
                 print!("\t{}: ", attr);
                 let mut iter = vec.iter();
                 print!("{}", iter.next().unwrap());
-                while let Some(memory_type) = iter.next() {
+                for memory_type in iter {
                     // Insert space if not the first value
                     print!(" {}", memory_type);
                 }
@@ -954,7 +954,7 @@ pub fn dmi_memory_module_error(error_status: u8) {
         0x04 => "See Event Log",
         _ => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => println!("{} ({})", OUT_OF_SPEC, error_status),
         false => println!("{}", print),
     }
@@ -1031,12 +1031,12 @@ pub fn dmi_cache_types(attr: &str, types: SramTypes, flat: bool) {
             vec.push("Asynchronous")
         }
 
-        if vec.len() != 0 {
+        if !vec.is_empty() {
             if flat {
                 print!("\t{}: ", attr);
                 let mut iter = vec.iter();
                 print!("{}", iter.next().unwrap());
-                while let Some(cache_type) = iter.next() {
+                for cache_type in iter {
                     // Insert space if not the first value
                     print!(" {}", cache_type);
                 }
@@ -1060,7 +1060,7 @@ pub fn dmi_cache_ec_type(ec_type: ErrorCorrectionTypeData) -> String {
         ErrorCorrectionType::MultiBitEcc => "Multi-bit ECC",
         ErrorCorrectionType::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, ec_type.raw),
         false => print.to_string(),
     }
@@ -1074,7 +1074,7 @@ pub fn dmi_cache_type(cache_type: SystemCacheTypeData) -> String {
         SystemCacheType::Unified => "Unified",
         SystemCacheType::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, cache_type.raw),
         false => print.to_string(),
     }
@@ -1097,7 +1097,7 @@ pub fn dmi_cache_associativity(associativity: CacheAssociativityData) -> String 
         CacheAssociativity::SetAssociative20Way => "20-way Set-associative",
         CacheAssociativity::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, associativity.raw),
         false => print.to_string(),
     }
@@ -1157,7 +1157,7 @@ pub fn dmi_memory_device_form_factor(form_factor: MemoryFormFactorData) -> Strin
         MemoryFormFactor::Die => "Die",
         MemoryFormFactor::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, form_factor.raw),
         false => print.to_string(),
     }
@@ -1207,7 +1207,7 @@ pub fn dmi_memory_device_type(memory_type: MemoryDeviceTypeData) -> String {
         MemoryDeviceType::Hbm3 => "HBM3",
         MemoryDeviceType::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, memory_type.raw),
         false => print.to_string(),
     }
@@ -1264,10 +1264,10 @@ pub fn dmi_memory_device_type_detail(type_detail: MemoryTypeDetails) {
             vec.push("LRDIMM");
         }
 
-        if vec.len() != 0 {
+        if !vec.is_empty() {
             let mut iter = vec.iter();
             print!("{}", iter.next().unwrap());
-            while let Some(detail) = iter.next() {
+            for detail in iter {
                 // Insert space if not the first value
                 print!(" {}", detail);
             }
@@ -1330,7 +1330,7 @@ pub fn dmi_memory_technology(technology: MemoryDeviceTechnologyData) {
         }
         MemoryDeviceTechnology::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => println!("{} ({})", OUT_OF_SPEC, technology.raw),
         false => println!("{}", print),
     }
@@ -1353,10 +1353,10 @@ pub fn dmi_memory_operating_mode_capability(mode: MemoryOperatingModeCapabilitie
             vec.push("Block-accessible persistent memory")
         }
 
-        if vec.len() != 0 {
+        if !vec.is_empty() {
             let mut iter = vec.iter();
             print!("{}", iter.next().unwrap());
-            while let Some(mode) = iter.next() {
+            for mode in iter {
                 // Insert space if not the first value
                 print!(" {}", mode);
             }
@@ -1411,7 +1411,7 @@ pub fn dmi_memory_error_type(error_type: MemoryErrorTypeData) -> String {
         MemoryErrorType::UncorrectableError => "Uncorrectable Error",
         MemoryErrorType::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, error_type.raw),
         false => print.to_string(),
     }
@@ -1424,7 +1424,7 @@ pub fn dmi_memory_error_granularity(granularity: MemoryErrorGranularityData) -> 
         MemoryErrorGranularity::MemoryPartitionLevel => "Memory Partition Level",
         MemoryErrorGranularity::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, granularity.raw),
         false => print.to_string(),
     }
@@ -1438,7 +1438,7 @@ pub fn dmi_memory_error_operation(operation: MemoryErrorOperationData) -> String
         MemoryErrorOperation::PartialWrite => "Partial Write",
         MemoryErrorOperation::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, operation.raw),
         false => print.to_string(),
     }
@@ -1483,7 +1483,7 @@ pub fn dmi_memory_array_location(location: MemoryArrayLocationData) -> String {
         MemoryArrayLocation::CxlFlexbus10AddOnCard => "CXL Flexbus 1.0",
         MemoryArrayLocation::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, location.raw),
         false => print.to_string(),
     }
@@ -1499,7 +1499,7 @@ pub fn dmi_memory_array_use(usage: MemoryArrayUseData) -> String {
         MemoryArrayUse::CacheMemory => "Cache Memory",
         MemoryArrayUse::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, usage.raw),
         false => print.to_string(),
     }
@@ -1515,7 +1515,7 @@ pub fn dmi_memory_array_ec_type(memory_error_correction: MemoryArrayErrorCorrect
         MemoryArrayErrorCorrection::Crc => "CRC",
         MemoryArrayErrorCorrection::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, memory_error_correction.raw),
         false => print.to_string(),
     }
@@ -1635,12 +1635,12 @@ pub fn dmi_system_boot_status(boot_status_data: &SystemBootStatusData<'_>) -> St
         SystemBootStatus::None => "",
     };
 
-    match print == "" {
-        true => match boot_status_data.raw.len() == 0 {
+    match print.is_empty() {
+        true => match boot_status_data.raw.is_empty() {
             true => OUT_OF_SPEC.to_string(),
             false => {
                 let byte = boot_status_data.raw[0];
-                if byte >= 128u8 && byte <= 191u8 {
+                if (128u8..=191u8).contains(&byte) {
                     "OEM-specific".to_string()
                 } else if byte >= 192u8 {
                     "Product-specific".to_string()
@@ -1649,7 +1649,7 @@ pub fn dmi_system_boot_status(boot_status_data: &SystemBootStatusData<'_>) -> St
                 }
             }
         },
-        false => format!("{}", print),
+        false => print.to_string(),
     }
 }
 pub fn dmi_port_connector_type(port_connector_type: &PortInformationConnectorTypeData) -> String {
@@ -1699,7 +1699,7 @@ pub fn dmi_port_connector_type(port_connector_type: &PortInformationConnectorTyp
         PortInformationConnectorType::None => "",
     };
 
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, port_connector_type.raw),
         false => print.to_string(),
     }
@@ -1748,7 +1748,7 @@ pub fn dmi_port_type(port_type_data: &PortInformationPortTypeData) -> String {
         PortInformationPortType::None => "",
     };
 
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, port_type_data.raw),
         false => print.to_string(),
     }
@@ -1771,7 +1771,7 @@ pub fn dmi_slot_bus_width(width: &SlotWidthData) -> String {
         SlotWidth::X32 => "x32",
         SlotWidth::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, width.raw),
         false => print.to_string(),
     }
@@ -1963,7 +1963,7 @@ pub fn dmi_slot_type(system_slot_type: &SystemSlotTypeData) -> String {
         SystemSlotType::EnterpriseAndDataCenter3InE3 => "EDSFF E3",
         SystemSlotType::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, system_slot_type.raw),
         false => print.to_string(),
     }
@@ -1977,7 +1977,7 @@ pub fn dmi_slot_current_usage(current_usage: &SlotCurrentUsageData) -> String {
         SlotCurrentUsage::Unavailable => "Unavailable",
         SlotCurrentUsage::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, current_usage.raw),
         false => print.to_string(),
     }
@@ -1992,7 +1992,7 @@ pub fn dmi_slot_length(slot_length: &SlotLengthData) -> String {
         SlotLength::DriveFormFactor35 => "3.5\" drive form factor",
         SlotLength::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, slot_length.raw),
         false => print.to_string(),
     }
@@ -2127,7 +2127,7 @@ pub fn dmi_on_board_devices_type(device_type: &OnBoardDeviceType) -> String {
         TypeOfDevice::UfsController => "UFS Controller",
         TypeOfDevice::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => format!("{} ({})", OUT_OF_SPEC, &device_type.raw & 0x7F),
         false => print.to_string(),
     }
@@ -2141,7 +2141,7 @@ pub fn dmi_event_log_method(access_method: &AccessMethodData) -> String {
         AccessMethod::GeneralPurposeNonVolatile => "General-purpose non-volatile data functions",
         AccessMethod::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
             if access_method.raw >= 0x80 {
                 format!("OEM-specific ({})", access_method.raw)
@@ -2176,7 +2176,7 @@ pub fn dmi_event_log_header_type(header_format: &HeaderFormatData) -> String {
         HeaderFormat::Type1LogHeader => "Type 1",
         HeaderFormat::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
             if header_format.raw >= 0x80 {
                 format!("OEM-specific ({})", header_format.raw)
@@ -2214,12 +2214,12 @@ pub fn dmi_event_log_descriptor_type(log_type: &LogTypeData) -> String {
         LogType::SystemBoot => "System boot",
         LogType::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
             if log_type.raw >= 0x80 && log_type.raw <= 0xFE {
                 format!("OEM-specific ({})", log_type.raw)
             } else if log_type.raw == 0xFF {
-                format!("End of log")
+                "End of log".to_string()
             } else {
                 format!("{} ({})", OUT_OF_SPEC, log_type.raw)
             }
@@ -2240,7 +2240,7 @@ pub fn dmi_event_log_descriptor_format(data: &VariableDataFormatTypeData) -> Str
         }
         VariableDataFormatType::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
             if data.raw >= 0x80 {
                 format!("OEM-specific ({})", data.raw)
@@ -2264,7 +2264,7 @@ pub fn dmi_pointing_device_type(device_type: &PointingDeviceTypeData) -> String 
         PointingDeviceType::OpticalSensor => "Optical Sensor",
         PointingDeviceType::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
             format!("{} ({})", OUT_OF_SPEC, device_type.raw)
         }
@@ -2288,7 +2288,7 @@ pub fn dmi_pointing_device_interface(interface: &PointingDeviceInterfaceData) ->
         PointingDeviceInterface::SPI => "SPI",
         PointingDeviceInterface::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
             format!("{} ({})", OUT_OF_SPEC, interface.raw)
         }
@@ -2307,7 +2307,7 @@ pub fn dmi_battery_chemistry(chemistry: &PortableBatteryDeviceChemistryData) -> 
         PortableBatteryDeviceChemistry::LithiumPolymer => "Lithium Polymer",
         PortableBatteryDeviceChemistry::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
             format!("{} ({})", OUT_OF_SPEC, chemistry.raw)
         }
@@ -2354,9 +2354,9 @@ pub fn dmi_voltage_probe_location(location: &VoltageProbeLocation) -> String {
         VoltageProbeLocation::AddInCard => "Add-in Card",
         VoltageProbeLocation::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
-            format!("{}", OUT_OF_SPEC)
+            OUT_OF_SPEC.to_string()
         }
         false => print.to_string(),
     }
@@ -2371,9 +2371,9 @@ pub fn dmi_probe_status(status: &VoltageProbeStatus) -> String {
         VoltageProbeStatus::NonRecoverable => "Non-recoverable",
         VoltageProbeStatus::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
-            format!("{}", OUT_OF_SPEC)
+            OUT_OF_SPEC.to_string()
         }
         false => print.to_string(),
     }
@@ -2423,9 +2423,9 @@ pub fn dmi_cooling_device_type(cooling_device_type: &CoolingDeviceType) -> Strin
         CoolingDeviceType::PassiveCooling => "Passive Cooling",
         CoolingDeviceType::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
-            format!("{}", OUT_OF_SPEC)
+            OUT_OF_SPEC.to_string()
         }
         false => print.to_string(),
     }
@@ -2440,9 +2440,9 @@ pub fn dmi_cooling_device_status(status: &CoolingDeviceStatus) -> String {
         CoolingDeviceStatus::NonRecoverable => "Non-recoverable",
         CoolingDeviceStatus::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
-            format!("{}", OUT_OF_SPEC)
+            OUT_OF_SPEC.to_string()
         }
         false => print.to_string(),
     }
@@ -2473,9 +2473,9 @@ pub fn dmi_temperature_probe_location(location: &TemperatureProbeLocation) -> St
         TemperatureProbeLocation::DriveBackPlane => "Drive Back Plane",
         TemperatureProbeLocation::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
-            format!("{}", OUT_OF_SPEC)
+            OUT_OF_SPEC.to_string()
         }
         false => print.to_string(),
     }
@@ -2490,9 +2490,9 @@ pub fn dmi_temperature_probe_status(status: &TemperatureProbeStatus) -> String {
         TemperatureProbeStatus::NonRecoverable => "Non-recoverable",
         TemperatureProbeStatus::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
-            format!("{}", OUT_OF_SPEC)
+            OUT_OF_SPEC.to_string()
         }
         false => print.to_string(),
     }
@@ -2542,9 +2542,9 @@ pub fn dmi_current_probe_location(location: &CurrentProbeLocation) -> String {
         CurrentProbeLocation::AddInCard => "Add-in Card",
         CurrentProbeLocation::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
-            format!("{}", OUT_OF_SPEC)
+            OUT_OF_SPEC.to_string()
         }
         false => print.to_string(),
     }
@@ -2559,10 +2559,8 @@ pub fn dmi_current_probe_status(status: &CurrentProbeStatus) -> String {
         CurrentProbeStatus::NonRecoverable => "Non-recoverable",
         CurrentProbeStatus::None => "",
     };
-    match print == "" {
-        true => {
-            format!("{}", OUT_OF_SPEC)
-        }
+    match print.is_empty() {
+        true => OUT_OF_SPEC.to_string(),
         false => print.to_string(),
     }
 }
@@ -2620,7 +2618,7 @@ pub fn dmi_management_device_type(device_type: &ManagementDeviceTypeData) -> Str
         ManagementDeviceType::HoltekHT82H791 => "HT82H791",
         ManagementDeviceType::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
             format!("{} ({})", OUT_OF_SPEC, device_type.raw)
         }
@@ -2638,7 +2636,7 @@ pub fn dmi_management_device_address_type(
         ManagementDeviceAddressType::SMBus => "SMBus",
         ManagementDeviceAddressType::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
             format!("{} ({})", OUT_OF_SPEC, address_type.raw)
         }
@@ -2653,7 +2651,7 @@ pub fn dmi_memory_channel_type(channel_type: &MemoryChannelTypeData) -> String {
         MemoryChannelType::SyncLink => "SyncLink",
         MemoryChannelType::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
             format!("{} ({})", OUT_OF_SPEC, channel_type.raw)
         }
@@ -2671,7 +2669,7 @@ pub fn dmi_ipmi_interface_type(interface_type: &IpmiInterfaceTypeData) -> String
         IpmiInterfaceType::SMBusSystemInterface => "SSIF (SMBus System Interface)",
         IpmiInterfaceType::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
             format!("{} ({})", OUT_OF_SPEC, interface_type.raw)
         }
@@ -2742,10 +2740,8 @@ pub fn dmi_power_supply_status(status: &PowerSupplyStatus) -> String {
         PowerSupplyStatus::Critical => "Critical",
         PowerSupplyStatus::None => "",
     };
-    match print == "" {
-        true => {
-            format!("{}", OUT_OF_SPEC)
-        }
+    match print.is_empty() {
+        true => OUT_OF_SPEC.to_string(),
         false => print.to_string(),
     }
 }
@@ -2790,9 +2786,9 @@ pub fn dmi_management_controller_host_type(host_type: &HostInterfaceTypeData) ->
         HostInterfaceType::OemDefined => "OEM",
         HostInterfaceType::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => match host_type.raw <= 0x3F {
-            true => format!("{}", "MCTP"),
+            true => "MCTP".to_string(),
             false => format!("{} ({})", OUT_OF_SPEC, host_type.raw),
         },
         false => print.to_string(),
@@ -2804,7 +2800,7 @@ pub fn dmi_tpm_vendor_id(vendor_id: &VendorId<'_>) {
         .iter()
         .take_while(|&&not_zero| not_zero != 0u8)
         .map(
-            |&ascii_filter| match ascii_filter < 32 || ascii_filter >= 127 {
+            |&ascii_filter| match !(32..127).contains(&ascii_filter) {
                 true => '.',
                 false => ascii_filter as char,
             },
@@ -3000,7 +2996,7 @@ pub fn dmi_parse_controller_structure(data: &SMBiosManagementControllerHostInter
                                 true => println!("{}", OUT_OF_SPEC),
                                 false => {
                                     let hname: String =
-                                        rdata[91..].into_iter().map(|&i| i as char).collect();
+                                        rdata[91..].iter().map(|&i| i as char).collect();
                                     println!("{}", hname)
                                 }
                             }
@@ -3031,7 +3027,7 @@ fn dmi_protocol_record_type(protocol_type: &HostProtocolTypeData) -> String {
         HostProtocolType::OemDefined => "OEM",
         HostProtocolType::None => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
             format!("{} ({})", OUT_OF_SPEC, protocol_type.raw)
         }
@@ -3048,7 +3044,7 @@ fn dmi_protocol_assignment_type(assignment_type: u8) -> String {
         0x4 => "Host Selected",
         _ => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
             format!("{} ({})", OUT_OF_SPEC, assignment_type)
         }
@@ -3063,7 +3059,7 @@ fn dmi_address_type(address_type: u8) -> String {
         0x2 => "IPv6",
         _ => "",
     };
-    match print == "" {
+    match print.is_empty() {
         true => {
             format!("{} ({})", OUT_OF_SPEC, address_type)
         }
